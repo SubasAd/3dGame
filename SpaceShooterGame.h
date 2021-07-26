@@ -35,6 +35,7 @@ class SpaceShooterGame : public Window, public InputListener
 	virtual void onLeftMouseUp(const Point& mouse_pos) override;
 	virtual void onRightMouseDown(const Point& mouse_pos) override;
 	virtual void onRightMouseUp(const Point& mouse_pos) override;
+	bool checkCollision();
 public:
 	void render();
 	void update();
@@ -45,8 +46,10 @@ public:
 	void updateThirdPersonCamera();
 	void updateSkyBox();
 	void updateLight();
+	
 	void updateSpaceship();
 	void drawMesh(const MeshPtr& mesh, const std::vector<MaterialPtr>& list_materials);
+	void createAsteroid();
 
 private:
 	SwapChainPtr m_swap_chain;
@@ -61,9 +64,19 @@ private:
 	MeshPtr m_asteroid_mesh;
 	MaterialPtr m_asteroid_mat;
 
+	
+	TexturePtr m_damaged_asteroid_tex;
+	MeshPtr m__damaged_asteroid_mesh;
+	MaterialPtr m_damaged_asteroid_mat;
+
+	TexturePtr m_bullet_tex;
+	MeshPtr m_bullet_mesh;
+	MaterialPtr m_bullet_mat;
 
 
-
+	TexturePtr m_finishing_sky_tex;
+	MeshPtr m_finishing_sky_mesh;
+	MaterialPtr m_finishing_sky_mat;
 
 
 
@@ -92,14 +105,18 @@ private:
 	Vector3D m_current_cam_rot;
 	//Vector3D m_current_cam_pos;
 
-	float m_spaceship_speed = 125.0f;
+	float m_spaceship_speed = 250.0f;
+	float m_normal_speed = 250.0f;
+	float m_turbo_counter = 0;
+
+
 
 	Vector3D m_current_spaceship_pos;
 
 
 
 	Vector3D m_spaceship_pos;
-
+	//Vector3D m_current_bullet_pos = m_spaceship_pos;
 
 	Vector3D m_current_spaceship_rot;
 
@@ -107,9 +124,9 @@ private:
 
 	float m_delta_mouse_x = 0.0f, m_delta_mouse_y = 0.0f;
 
-	Vector3D m_asteroid_pos[20000];
-	Vector3D m_asteroid_rot[20000];
-	Vector3D m_asteroid_scale[20000];
+	Vector3D m_asteroid_pos[200];
+	Vector3D m_asteroid_rot[200];
+	Vector3D m_asteroid_scale[200];
 	
 	float m_forward = 0.0f;
 	float m_rightward = 0.0f;
