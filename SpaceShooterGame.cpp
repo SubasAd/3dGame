@@ -9,6 +9,7 @@
 #include  "MathUtils.h"
 #include "Material.h"
 #include <time.h>
+#include <iostream>
 
 struct vertex
 {
@@ -52,18 +53,27 @@ void SpaceShooterGame::render()
 	//RENDER SPACESHIP
 	m_list_materials.clear();
 	m_list_materials.push_back(m_spaceship_mat);
-	updateModel(m_current_spaceship_pos,m_current_spaceship_rot,Vector3D(1,1,1) ,m_list_materials);
+	updateModel(m_current_spaceship_pos, m_spaceship_rot, Vector3D(1, 1, 1), m_list_materials);
 
 	drawMesh(m_spaceship_mesh, m_list_materials);
+	
 
+
+
+	
+
+	
+	
 
 	//ASTEROIDS
-
-	m_list_materials.clear();
+    m_list_materials.clear();
+	
 	m_list_materials.push_back(m_asteroid_mat);
 
+	
+	
 
-	for (unsigned int i = 0; i < 20000; i++)
+	for (unsigned int i = 0; i < 200; i++)
 	{
 		
 	updateModel(m_asteroid_pos[i],m_asteroid_rot[i], m_asteroid_scale[i], m_list_materials);
@@ -73,13 +83,24 @@ void SpaceShooterGame::render()
 	}
 
 
-
+	
 
 	//Render SKY
-	m_list_materials.clear();
+	if (m_spaceship_pos.m_z <= 9000) {
+m_list_materials.clear();
 	m_list_materials.push_back(m_sky_mat);
 	drawMesh(m_sky_mesh, m_list_materials);
+	}
+	
+		m_list_materials.clear();
+		m_list_materials.push_back(m_finishing_sky_mat);
+		updateModel(Vector3D(0, 0, 12000), Vector3D(1, 1, 1), Vector3D(3000, 3000, 3000), m_list_materials);
+		drawMesh(m_finishing_sky_mesh, m_list_materials);
+	
+	
 
+	//Render SKY
+	
 
 
 
@@ -90,16 +111,19 @@ void SpaceShooterGame::render()
 	m_new_delta = ::GetTickCount();
 
 	m_delta_time = (m_old_delta) ? ((m_new_delta - m_old_delta) / 1000.0f) : 0;
+	//m_delta_time = 1.0f / 30.0f;
+
 	m_time += m_delta_time;
 }
 
 void SpaceShooterGame::update()
 {
 	updateSpaceship();
-
+	//m_current_bullet_pos = m_current_spaceship_pos;
 	updateThirdPersonCamera();
 	updateLight();
 	updateSkyBox();
+	
 	
 }
 
@@ -285,10 +309,12 @@ void SpaceShooterGame::updateSkyBox()
 
 	cc.m_world.setIdentity();
 	cc.m_world.setScale(Vector3D(8000.0f, 8000.0f, 8000.0f));
+
 	cc.m_world.setTranslation(m_world_cam.getTranslation());
 	cc.m_view = m_view_cam;
 	cc.m_proj = m_proj_cam;
 	m_sky_mat->setData(&cc, sizeof(constant));
+	//m_finishing_sky_mat->setData(&cc, sizeof(constant));
 
 }
 void SpaceShooterGame::updateLight()
@@ -309,6 +335,9 @@ void SpaceShooterGame::updateLight()
 	temp.setRotationY(0.707f);
 	m_light_rot_matrix *= temp;
 }
+
+
+
 
 void SpaceShooterGame::updateSpaceship()
 {
@@ -331,20 +360,78 @@ m_current_spaceship_rot = Vector3D::lerp(m_current_spaceship_rot, m_spaceship_ro
 	temp.setRotationY(m_current_spaceship_rot.m_y);
 	world_model *= temp;
 
-
-	m_spaceship_speed = 125.0f;
+	
+	m_spaceship_speed ;
 	if (m_turbo_mode) {
-		m_spaceship_speed = 305.0f;
+		m_spaceship_speed =350.0f;
+
 	}
-
-
-	m_spaceship_pos = m_spaceship_pos + world_model.getZDirection() * (m_forward)*m_spaceship_speed*m_delta_time;
-
-	//m_spaceship_pos = m_spaceship_pos + world_model.getXDirection() * (m_rightward)*1 * m_delta_time;
-
+	else
+	{
+		m_spaceship_speed = m_normal_speed;
+	}
+	
 	
 
-	m_current_spaceship_pos = Vector3D::lerp(m_current_spaceship_pos, m_spaceship_pos,3.0f*m_delta_time );
+	bool correctspaceshippos = (m_current_spaceship_pos.m_x <= 9000 || m_current_spaceship_pos.m_x >= -9000) && (m_current_spaceship_pos.m_y <= 9000 || m_current_spaceship_pos.m_y >= -9000) && (m_current_spaceship_pos.m_z <= 9000 || m_current_spaceship_pos.m_z >= -9000);
+
+
+	if (correctspaceshippos)
+	{
+
+		m_spaceship_pos = m_spaceship_pos + world_model.getZDirection() * (m_forward)*m_spaceship_speed * m_delta_time;
+      m_current_spaceship_pos = Vector3D::lerp(m_current_spaceship_pos, m_spaceship_pos,3.0f*m_delta_time );
+	  m_spaceship_pos = m_spaceship_pos + world_model.getXDirection() * (m_rightward) * 125.0f * m_delta_time;
+	}
+	else
+	{
+		m_current_spaceship_pos = m_spaceship_pos;
+	}
+	std::cout << m_spaceship_pos.m_z << "   ";
+
+	
+	if (m_spaceship_pos.m_x >= 100  )
+	
+	{
+		m_spaceship_pos = Vector3D(100, m_spaceship_pos.m_y, m_spaceship_pos.m_z);
+		m_current_spaceship_pos = Vector3D(100, m_spaceship_pos.m_y, m_spaceship_pos.m_z);
+		std::cout <<"m_current_spaceship_pos" << m_current_spaceship_pos.m_x << std::endl;
+	}
+	if (m_spaceship_pos.m_x <= -100)
+
+	{
+		m_spaceship_pos = Vector3D(-100, m_spaceship_pos.m_y, m_spaceship_pos.m_z);
+		m_current_spaceship_pos = Vector3D(-100, m_spaceship_pos.m_y, m_spaceship_pos.m_z);
+		std::cout << "m_current_spaceship_pos" << m_current_spaceship_pos.m_x << std::endl;
+	}
+	
+	if (m_spaceship_pos.m_y >= 100)
+
+	{
+		m_spaceship_pos = Vector3D( m_spaceship_pos.m_x, 100,m_spaceship_pos.m_z);
+		m_current_spaceship_pos = Vector3D( m_spaceship_pos.m_y,100, m_spaceship_pos.m_z);
+		std::cout << "m_current_spaceship_pos" << m_current_spaceship_pos.m_y << std::endl;
+	}
+	if (m_spaceship_pos.m_y <= -100)
+
+	{
+		m_spaceship_pos = Vector3D( m_spaceship_pos.m_y,-100, m_spaceship_pos.m_z);
+		m_current_spaceship_pos = Vector3D(m_spaceship_pos.m_y,-100, m_spaceship_pos.m_z);
+		std::cout << "m_current_spaceship_pos" << m_current_spaceship_pos.m_x << std::endl;
+	}
+	if (m_spaceship_pos.m_z >= 9000)
+	{
+		m_spaceship_speed = 0.0f;
+		m_normal_speed = 0.0f;
+	}
+	if (m_spaceship_pos.m_z >= 12000)
+
+	{
+		
+		m_spaceship_pos = Vector3D(m_spaceship_pos.m_x, m_spaceship_pos.m_y,90000);
+		m_current_spaceship_pos = Vector3D(m_spaceship_pos.m_y, m_spaceship_pos.m_y, m_spaceship_pos.m_z);
+		std::cout << "m_current_spaceship_pos" << m_current_spaceship_pos.m_y << std::endl;
+	}
 	
 
 }
@@ -391,9 +478,10 @@ void SpaceShooterGame::onCreate()
 
 	srand((unsigned int) time(NULL));
 
-	for (unsigned int i = 0; i < 20000; i++)
+	for (unsigned int i = 0; i < 200; i++)
 	{
-		m_asteroid_pos[i] = Vector3D(rand()%18000+(-9000), rand() % 18000 + (-9000), rand() % 18000 + (-9000));
+		m_asteroid_pos[i] = Vector3D(rand()%1800+(-900), rand() % 1800 + (-900), rand() % 1800 + (-900));
+
 		m_asteroid_rot[i] = Vector3D((rand() % 628)/100.0f , (rand() % 628) / 100.0f, (rand() % 628) / 100.0f);
 		float scale = (rand() % 20 + (6));
 
@@ -404,36 +492,11 @@ void SpaceShooterGame::onCreate()
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 	m_sky_tex = GraphicsEngine::get()->getTextureManager()->createTextureFromFile(L"..\\Assets\\Textures\\stars_map.jpg");
 	m_sky_mesh = GraphicsEngine::get()->getMeshManager()->createMeshFromFile(L"..\\Assets\\Meshes\\sphere.obj");
 	
-
+	m_bullet_tex = GraphicsEngine::get()->getTextureManager()->createTextureFromFile(L"..\\Assets\\Textures\\bullet.jpg");
+	m_bullet_mesh = GraphicsEngine::get()->getMeshManager()->createMeshFromFile(L"..\\Assets\\Meshes\\Spaceshipbullet.obj");
 
 	m_spaceship_tex = GraphicsEngine::get()->getTextureManager()->createTextureFromFile(L"..\\Assets\\Textures\\spaceship.jpg");
 	m_spaceship_mesh = GraphicsEngine::get()->getMeshManager()->createMeshFromFile(L"..\\Assets\\Meshes\\spaceship.obj");
@@ -442,8 +505,11 @@ void SpaceShooterGame::onCreate()
 	m_asteroid_mesh = GraphicsEngine::get()->getMeshManager()->createMeshFromFile(L"..\\Assets\\Meshes\\asteroid.obj");
 
 
+	m_finishing_sky_tex = GraphicsEngine::get()->getTextureManager()->createTextureFromFile(L"..\\Assets\\Textures\\sky.jpg");
+	m_finishing_sky_mesh = GraphicsEngine::get()->getMeshManager()->createMeshFromFile(L"..\\Assets\\Meshes\\sphere.obj");
 
-
+	m_asteroid_tex = GraphicsEngine::get()->getTextureManager()->createTextureFromFile(L"..\\Assets\\Textures\\asteroid.jpg");
+	m_asteroid_mesh = GraphicsEngine::get()->getMeshManager()->createMeshFromFile(L"..\\Assets\\Meshes\\asteroid.obj");
 
 
 
@@ -463,7 +529,12 @@ void SpaceShooterGame::onCreate()
 	m_sky_mat->addTexture(m_sky_tex);
 	m_sky_mat->setCullMode(CULL_MODE_FRONT);
 
+	m_finishing_sky_mat = GraphicsEngine::get()->createMaterial(m_base_mat);
+	m_finishing_sky_mat->addTexture(m_finishing_sky_tex);
+	m_finishing_sky_mat->setCullMode(CULL_MODE_FRONT);
 
+	m_bullet_mat = GraphicsEngine::get()->createMaterial(m_base_mat);
+	m_bullet_mat->addTexture(m_bullet_tex);
 
 	m_world_cam.setTranslation(Vector3D(0, 0, -2));
     m_list_materials.reserve(32);
@@ -476,7 +547,10 @@ void SpaceShooterGame::onUpdate()
 
 	//COMPUTE TRANSFORM MATRICES
 	this->update();
+	this->checkCollision();
 	this->render();
+	
+	
 }
 
 void SpaceShooterGame::onDestroy()
@@ -529,8 +603,23 @@ void SpaceShooterGame::onKeyDown(int key)
 	
 	else if (key == VK_SHIFT)
 	{
+		
+			m_turbo_mode = true;
+		
+
 		//m_rot_y -= 3.14f*m_delta_time;
-		m_turbo_mode = true;
+		
+
+
+	}
+	else if (key == VK_SPACE)
+	{
+
+	
+		updateModel(m_current_spaceship_pos, m_current_spaceship_rot, Vector3D(1, 1, 1), m_list_materials);
+
+		
+
 	}
 
 
@@ -563,6 +652,10 @@ void SpaceShooterGame::onKeyUp(int key)
 	{
 		//m_rot_y -= 3.14f*m_delta_time;
 		m_turbo_mode = false;
+	}
+	else if (key == 'I')
+	{
+		m_spaceship_pos = Vector3D(0,0,0);
 	}
 
 }
@@ -609,4 +702,55 @@ void SpaceShooterGame::onRightMouseDown(const Point& mouse_pos)
 void SpaceShooterGame::onRightMouseUp(const Point& mouse_pos)
 {
 	
+}
+bool SpaceShooterGame::checkCollision()
+{
+	
+	for (unsigned int i = 0; i < 200; i++)
+	{
+		Vector3D* dist =new Vector3D( m_spaceship_pos - m_asteroid_pos[i]);
+		float magnitude = pow((dist->m_x *dist-> m_x +dist-> m_y *dist-> m_y +dist-> m_z * dist->m_z), 0.5);
+		
+		if (m_asteroid_pos[i].m_z - m_spaceship_pos.m_z <= -25  )
+		{
+
+			if (m_asteroid_pos[i].m_z == 0) {}
+			m_asteroid_pos[i]   = Vector3D(0,0, m_current_spaceship_pos.m_z)+ Vector3D(0, 0, 90) + m_asteroid_pos[i];
+			//render();
+		}
+
+
+		Vector3D* scale = new Vector3D(m_asteroid_scale[i]);
+		float scalemagn = pow((scale->m_x * scale->m_x + scale->m_y * scale->m_y + scale->m_z * scale->m_z), 0.5);
+		//std::cout << "Not Collided" << magnitude;
+		if (magnitude <= scalemagn*2.7-6)
+		{
+			
+			
+			
+		m_spaceship_mesh = GraphicsEngine::get()->getMeshManager()->createMeshFromFile(L"..\\Assets\\Meshes\\house.obj");
+		if (m_delta_time <= 400)
+		{
+			m_spaceship_mesh = GraphicsEngine::get()->getMeshManager()->createMeshFromFile(L"..\\Assets\\Meshes\\spaceship.obj");
+		}
+		
+		
+
+		}
+
+	}
+
+
+	
+
+	
+
+	return false;
+	
+}
+void SpaceShooterGame::createAsteroid()
+{
+
+	//m_asteroid_pos[0] = Vector3D(0, 0, 0);
+
 }
